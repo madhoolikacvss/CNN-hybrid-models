@@ -7,17 +7,17 @@ leafnet_project/
 │    └── plantvillage/         # test dataset only
 │
 │── models/
-│    ├── leafnetv2.py          # your hybrid CNN
-│    ├── mobilenet.py          # baseline wrapper
-│    ├── efficientnet.py       # baseline wrapper
+│    ├── leafnetv2.py          
+│    ├── mobilenet.py          
+│    ├── efficientnet.py       
 │
 │── utils/
 │    ├── datasets.py           # loaders, transforms, augmentations
 │    ├── metrics.py            # accuracy, macro-F1, confusion matrix
 │    ├── train_utils.py        # train/validate loops
 │
-│── train.py                   # main script for training & validation
-│── test.py                    # run evaluation on PlantVillage
-│── ablation.py                # run ablation studies
+│── train.py                   
+│── test.py                    
+│── ablation.py                
 │── requirements.txt
 <pre>
