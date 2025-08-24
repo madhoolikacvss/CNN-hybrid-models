@@ -1,6 +1,19 @@
 import torchvision.transforms as T
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, random_split
+import os
+import kagglehub
+
+def ensure_dataset(dataset_id: str, local_path: str):
+    """Download dataset via kagglehub if not already present locally."""
+    if not os.path.exists(local_path):
+        print(f"Downloading {dataset_id} to {local_path}...")
+        path = kagglehub.dataset_download(dataset_id)
+        print("Downloaded to:", path)
+        return path
+    else:
+        print(f"Using existing dataset at {local_path}")
+        return local_path
 
 def get_transforms(train=True):
     if train:
@@ -10,7 +23,7 @@ def get_transforms(train=True):
             T.RandomVerticalFlip(),
             T.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
             T.RandomRotation(20),
-            T.GaussianBlur(kernel_size = 5, sigma=(0.1,2.0)),
+            # T.GaussianBlur(kernel_size = 5, sigma=(0.1,2.0)),
             T.ToTensor(),
             T.Normalize([0.485, 0.456, 0.406],
                         [0.229, 0.224, 0.225]) #using imagenet mean and std
@@ -24,16 +37,15 @@ def get_transforms(train=True):
                         [0.229, 0.224, 0.225]) #using imagenet mean and std
         ])
 
-def get_dataloaders(data_dir, batch_size=32, split=0.8):
-    dataset = ImageFolder(data_dir, transform=get_transforms(train=True))
-    train_size = int(split * len(dataset))
-    val_size = len(dataset) - train_size
-    train_set, val_set = random_split(dataset, [train_size, val_size])
-    return (
-        DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=4),
-        DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=4),
-    )
+def get_newplant_loaders(root="data/new_plant_diseases", batch_size=32):
+    ensure_dataset("vipoooool/new-plant-diseases-dataset", root)
+    train_ds = ImageFolder(f"{root}/train", transform=get_transforms(train=True))
+    val_ds   = ImageFolder(f"{root}/valid", transform=get_transforms(train=False))
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_loader   = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
+    return train_loader, val_loader
 
-def get_testloader(data_dir, batch_size=32):
-    dataset = ImageFolder(data_dir, transform=get_transforms(train=False))
-    return DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+def get_plantvillage_loader(root="data/plantvillage", batch_size=32):
+    ensure_dataset("emmarex/plantdisease", root)
+    test_ds = ImageFolder(root, transform=get_transforms(train=False))
+    return DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=4)
