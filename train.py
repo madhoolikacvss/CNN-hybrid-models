@@ -21,38 +21,46 @@ NUM_CLASSES = 14  # adjust if needed
 
 
 # Data loaders
-
 train_loader, val_loader = get_newplant_loaders(batch_size=BATCH_SIZE)
 
 
 # Model
 model = LeafNetv2(n_class=NUM_CLASSES).to(device)
 
-# Count params and FLOPs
-dummy_input = torch.randn(1, 3, 224, 224).to(device)
-flops, params = profile(model, inputs=(dummy_input,), verbose=False)
-print(f"Total params: {params/1e6:.2f}M, FLOPs: {flops/1e9:.2f}G")
-
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 optimizer = optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
+with torch.no_grad():
+    inputs, _ = next(iter(train_loader))
+    single_input = inputs[:1].to(device)
+    flops, params = profile(model, inputs=(single_input,), verbose=False)
+    print(f"Total params: {params/1e6:.2f}M, FLOPs: {flops/1e9:.2f}G")
 
 # Training loop
 best_val_acc = 0.0
+target_acc = 0.95
+time_to_target = None
+training_start_time = time.time()
+
 for epoch in range(1, NUM_EPOCHS+1):
-    start_time = time.time()
-    
+    epoch_start = time.time()
     train_loss, train_acc = train_one_epoch(model, train_loader, optimizer, criterion, device)
     val_loss, val_acc = evaluate(model, val_loader, criterion, device)
     
-    elapsed = time.time() - start_time
+    elapsed = time.time() - epoch_start
     print(f"Epoch {epoch}/{NUM_EPOCHS} | "
           f"Train Acc: {train_acc:.4f} | Val Acc: {val_acc:.4f} | "
           f"Time: {elapsed:.1f}s")
     
-    # Save best model
     if val_acc > best_val_acc:
         best_val_acc = val_acc
         torch.save(model.state_dict(), "leafnetv2_best.pth")
         print(f"Saved best model at epoch {epoch} with val_acc {val_acc:.4f}")
+    
+    if time_to_target is None and val_acc >= target_acc:
+        time_to_target = time.time() - training_start_time
+        print(f"Reached {target_acc*100:.1f}% val accuracy in {time_to_target:.1f}s")
+
+if time_to_target is None:
+    print(f"Target accuracy of {target_acc*100:.0f}% not reached in {NUM_EPOCHS} epochs")
