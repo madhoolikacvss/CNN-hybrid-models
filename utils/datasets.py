@@ -2,20 +2,22 @@ import torchvision.transforms as T
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 import os
-import kagglehub
 import kaggle
 
+
 def ensure_dataset(dataset_id: str, local_path: str):
+    """Download dataset from Kaggle if not found locally."""
     if not os.path.exists(local_path):
         print(f"Downloading {dataset_id} to {local_path}...")
         kaggle.api.dataset_download_files(dataset_id, local_path, unzip=True)
         print("Downloaded to:", local_path)
-        return local_path
     else:
         print(f"Using existing dataset at {local_path}")
-        return local_path
+    return local_path
+
 
 def get_transforms(train=True):
+    """Define data augmentation and preprocessing transforms."""
     if train:
         return T.Compose([
             T.RandomResizedCrop(224),
@@ -37,15 +39,33 @@ def get_transforms(train=True):
                         [0.229, 0.224, 0.225])
         ])
 
-def get_newplant_loaders(root="/CNN-hybrid-models/data", batch_size=32):
-    dataset_root = ensure_dataset("vipoooool/new-plant-diseases-dataset", root)
-    # Construct the correct nested paths based on ls output
-    train_ds = ImageFolder(os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/train"), transform=get_transforms(train=True))
-    val_ds = ImageFolder(os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/valid"), transform=get_transforms(train=False))
-    return (DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4),
-            DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4))
 
-def get_plantvillage_loader(root="/CNN-hybrid-models/data", batch_size=32):
-    ensure_dataset("emmarex/plantdisease", root)
-    test_ds = ImageFolder(root, transform=get_transforms(train=False))
-    return DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=4)
+def get_newplant_loaders(root="./data", batch_size=32):
+    """
+    Returns train, val, test DataLoaders for the New Plant Disease Dataset Augmented.
+    Dataset structure should be:
+    root/New plant disease dataset augmented/train/
+    root/New plant disease dataset augmented/valid/
+    root/test/
+    """
+    # Ensure dataset is downloaded
+    dataset_id = "vipoooool/new-plant-diseases-dataset"
+    dataset_root = ensure_dataset(dataset_id, root)
+
+    # Paths
+    dataset_root = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)")
+    train_dir = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/train")
+    val_dir = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/valid")
+    test_dir = os.path.join(root, "test")
+
+    # Datasets
+    train_ds = ImageFolder(train_dir, transform=get_transforms(train=True))
+    val_ds = ImageFolder(val_dir, transform=get_transforms(train=False))
+    test_ds = ImageFolder(test_dir, transform=get_transforms(train=False))
+
+    # DataLoaders
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=4)
+
+    return train_loader, val_loader, test_loader
