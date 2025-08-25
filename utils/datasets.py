@@ -2,22 +2,18 @@ import torchvision.transforms as T
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 import os
-from kaggle.api.kaggle_api_extended import KaggleApi
+import kagglehub
+import kaggle
 
 def ensure_dataset(dataset_id: str, local_path: str):
-    """Download Kaggle dataset to a specific folder if not already present."""
     if not os.path.exists(local_path):
         print(f"Downloading {dataset_id} to {local_path}...")
-        os.makedirs(local_path, exist_ok=True)
-
-        api = KaggleApi()
-        api.authenticate()  # Make sure ~/.kaggle/kaggle.json exists
-        api.dataset_download_files(dataset_id, path=local_path, unzip=True)
-        
+        kaggle.api.dataset_download_files(dataset_id, local_path, unzip=True)
         print("Downloaded to:", local_path)
+        return local_path
     else:
         print(f"Using existing dataset at {local_path}")
-    return local_path
+        return local_path
 
 def get_transforms(train=True):
     if train:
@@ -42,9 +38,10 @@ def get_transforms(train=True):
         ])
 
 def get_newplant_loaders(root="/CNN-hybrid-models/data", batch_size=32):
-    ensure_dataset("vipoooool/new-plant-diseases-dataset", root)
-    train_ds = ImageFolder(f"{root}/train", transform=get_transforms(train=True))
-    val_ds = ImageFolder(f"{root}/valid", transform=get_transforms(train=False))
+    dataset_root = ensure_dataset("vipoooool/new-plant-diseases-dataset", root)
+    # Construct the correct nested paths based on ls output
+    train_ds = ImageFolder(os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/train"), transform=get_transforms(train=True))
+    val_ds = ImageFolder(os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/valid"), transform=get_transforms(train=False))
     return (DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4),
             DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4))
 
