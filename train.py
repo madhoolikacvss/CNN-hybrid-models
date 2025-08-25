@@ -11,11 +11,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
 # Hyperparameters
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 LR = 1e-3
 WEIGHT_DECAY = 0.05
-NUM_EPOCHS = 30
-NUM_CLASSES = 14
+NUM_EPOCHS = 3 #change when training actually
+NUM_CLASSES = 38
 
 # Data loaders
 train_loader, val_loader = get_newplant_loaders(batch_size=BATCH_SIZE)
