@@ -5,7 +5,7 @@ import seaborn as sns
 import time
 from thop import profile
 from utils.datasets import get_plantvillage_loader
-from models.leafnetv2 import LeafNetv2
+from models.leafnetV2 import LeafNetv2
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
