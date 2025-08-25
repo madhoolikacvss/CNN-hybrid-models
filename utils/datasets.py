@@ -36,7 +36,7 @@ def get_transforms(train=True):
                         [0.229, 0.224, 0.225])
         ])
 
-def get_newplant_loaders(root="kaggle/input/new-plant-diseases-dataset/New Plant Diseases Dataset(Augmented)/train", batch_size=32):
+def get_newplant_loaders(root="/CNN-hybrid-models/data", batch_size=32):
     ensure_dataset("vipoooool/new-plant-diseases-dataset", root)
     train_ds = ImageFolder(f"{root}/train", transform=get_transforms(train=True))
     val_ds = ImageFolder(f"{root}/valid", transform=get_transforms(train=False))
