@@ -40,7 +40,7 @@ def get_transforms(train=True):
         ])
 
 
-def get_newplant_loaders(root="./data", batch_size=32):
+def get_newplant_loaders(root="/CNN-hybrid-models/data", batch_size=32):
     """
     Returns train, val, test DataLoaders for the New Plant Disease Dataset Augmented.
     Dataset structure should be:
@@ -53,10 +53,9 @@ def get_newplant_loaders(root="./data", batch_size=32):
     dataset_root = ensure_dataset(dataset_id, root)
 
     # Paths
-    dataset_root = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)")
-    train_dir = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/train")
-    val_dir = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/valid")
-    test_dir = os.path.join(root, "test")
+    train_dir = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/train")
+    val_dir = os.path.join(dataset_root, "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/valid")
+    test_dir = os.path.join(root, "New Plant Diseases Dataset(Augmented)/test")
 
     # Datasets
     train_ds = ImageFolder(train_dir, transform=get_transforms(train=True))
