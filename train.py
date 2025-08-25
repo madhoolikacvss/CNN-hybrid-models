@@ -4,7 +4,7 @@ import torch.optim as optim
 import time
 from thop import profile
 from utils.datasets import get_newplant_loaders
-from models.leafnetv2 import LeafNetv2
+from models.leafnetV2 import LeafNetv2
 from utils.train_utils import train_one_epoch, evaluate
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
