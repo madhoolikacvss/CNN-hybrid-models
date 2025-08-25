@@ -1,23 +1,18 @@
 # test.py
 import torch
-from sklearn.metrics import classification_report, confusion_matrix, f1_score
+import argparse
+from thop import profile
+from sklearn.metrics import f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
-import time
-from thop import profile
-import argparse
 
-# Dataset
 from utils.datasets import get_newplant_loaders
+from utils.metrics import compute_classification_metrics, compute_flops_params, measure_latency
 
-# Models
 from models.leafnetV2 import LeafNetv2
 from models.efficientnetV2 import EfficientNetV2
 from models.mobilenet import MobileNet
 
-# ---------------------------
-# Device
-# ---------------------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
@@ -53,37 +48,25 @@ model.eval()
 print(f"Loaded {args.model} checkpoint from {checkpoint_path}")
 
 # ---------------------------
-# FLOPs and params
+# FLOPs & params
 # ---------------------------
 with torch.no_grad():
     inputs, _ = next(iter(test_loader))
     single_input = inputs[:1].to(device)
-    flops, params = profile(model, inputs=(single_input,), verbose=False)
+    flops, params = compute_flops_params(model, single_input)
     print(f"[{args.model}] Params: {params/1e6:.2f}M, FLOPs: {flops/1e9:.2f}G")
 
 # ---------------------------
-# Latency measurement
+# Latency
 # ---------------------------
-def measure_latency(model, input_tensor, n=100):
-    model.eval()
-    for _ in range(10): _ = model(input_tensor)  # warm-up
-    torch.cuda.synchronize() if input_tensor.device.type=="cuda" else None
-    start = time.time()
-    for _ in range(n): _ = model(input_tensor)
-    torch.cuda.synchronize() if input_tensor.device.type=="cuda" else None
-    return (time.time() - start)/n
-
-cpu_time = measure_latency(model, single_input.cpu())
-print(f"[{args.model}] Avg single-image CPU latency: {cpu_time*1000:.2f} ms")
-if device.type=="cuda":
-    gpu_time = measure_latency(model, single_input)
-    print(f"[{args.model}] Avg single-image GPU latency: {gpu_time*1000:.2f} ms")
+cpu_time = measure_latency(model, single_input.cpu(), device='cpu')
+gpu_time = measure_latency(model, single_input.to(device), device='cuda')
+print(f"Avg CPU latency: {cpu_time*1000:.2f} ms, GPU latency: {gpu_time*1000:.2f} ms")
 
 # ---------------------------
 # Evaluation
 # ---------------------------
 all_preds, all_labels = [], []
-
 with torch.no_grad():
     for x, y in test_loader:
         x, y = x.to(device), y.to(device)
@@ -91,16 +74,5 @@ with torch.no_grad():
         all_preds.extend(preds.cpu().numpy())
         all_labels.extend(y.cpu().numpy())
 
-# Metrics
-accuracy = sum([p==l for p,l in zip(all_preds, all_labels)]) / len(all_labels)
-macro_f1 = f1_score(all_labels, all_preds, average='macro')
-print(f"[{args.model}] Test Accuracy: {accuracy:.4f}, Macro-F1: {macro_f1:.4f}")
-
-# Confusion matrix
-cm = confusion_matrix(all_labels, all_preds)
-plt.figure(figsize=(12,10))
-sns.heatmap(cm, annot=False, fmt='d', cmap="Blues")
-plt.xlabel("Predicted")
-plt.ylabel("True")
-plt.title(f"{args.model} Confusion Matrix")
-plt.show()
+acc, macro_f1 = compute_classification_metrics(all_labels, all_preds, test_loader.dataset.classes)
+print(f"[{args.model}] Test Accuracy:
