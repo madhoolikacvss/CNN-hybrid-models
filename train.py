@@ -2,27 +2,23 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import time
-from thop import profile  # for FLOPs
+from thop import profile
 from utils.datasets import get_newplant_loaders
 from models.leafnetv2 import LeafNetv2
 from utils.train_utils import train_one_epoch, evaluate
-
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
 # Hyperparameters
-
 BATCH_SIZE = 64
 LR = 1e-3
 WEIGHT_DECAY = 0.05
 NUM_EPOCHS = 30
-NUM_CLASSES = 14  # adjust if needed
-
+NUM_CLASSES = 14
 
 # Data loaders
 train_loader, val_loader = get_newplant_loaders(batch_size=BATCH_SIZE)
-
 
 # Model
 model = LeafNetv2(n_class=NUM_CLASSES).to(device)
@@ -31,6 +27,7 @@ model = LeafNetv2(n_class=NUM_CLASSES).to(device)
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 optimizer = optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
+# FLOPs and params on single real input
 with torch.no_grad():
     inputs, _ = next(iter(train_loader))
     single_input = inputs[:1].to(device)
