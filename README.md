@@ -21,3 +21,13 @@ leafnet_project/
 │── ablation.py                
 │── requirements.txt
 <pre>
+
+For testing:
+python test.py --model leafnet
+python test.py --model efficientnetv2
+python test.py --model mobilenet
+
+For Training:
+python train.py --model leafnet
+python train.py --model efficientnetv2
+python train.py --model mobilenet
