@@ -2,18 +2,22 @@ import torchvision.transforms as T
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 import os
-import kagglehub
-import kaggle
+from kaggle.api.kaggle_api_extended import KaggleApi
 
 def ensure_dataset(dataset_id: str, local_path: str):
+    """Download Kaggle dataset to a specific folder if not already present."""
     if not os.path.exists(local_path):
         print(f"Downloading {dataset_id} to {local_path}...")
-        kaggle.api.dataset_download_files(dataset_id, local_path, unzip=True)
+        os.makedirs(local_path, exist_ok=True)
+
+        api = KaggleApi()
+        api.authenticate()  # Make sure ~/.kaggle/kaggle.json exists
+        api.dataset_download_files(dataset_id, path=local_path, unzip=True)
+        
         print("Downloaded to:", local_path)
-        return path
     else:
         print(f"Using existing dataset at {local_path}")
-        return local_path
+    return local_path
 
 def get_transforms(train=True):
     if train:
