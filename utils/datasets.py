@@ -3,12 +3,13 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 import os
 import kagglehub
+import kaggle
 
 def ensure_dataset(dataset_id: str, local_path: str):
     if not os.path.exists(local_path):
         print(f"Downloading {dataset_id} to {local_path}...")
-        path = kagglehub.dataset_download(dataset_id)
-        print("Downloaded to:", path)
+        kaggle.api.dataset_download_files(dataset_id, local_path, unzip=True)
+        print("Downloaded to:", local_path)
         return path
     else:
         print(f"Using existing dataset at {local_path}")
@@ -43,7 +44,7 @@ def get_newplant_loaders(root="/CNN-hybrid-models/data", batch_size=32):
     return (DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4),
             DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4))
 
-def get_plantvillage_loader(root="data/plantvillage", batch_size=32):
+def get_plantvillage_loader(root="/CNN-hybrid-models/data", batch_size=32):
     ensure_dataset("emmarex/plantdisease", root)
     test_ds = ImageFolder(root, transform=get_transforms(train=False))
     return DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=4)
