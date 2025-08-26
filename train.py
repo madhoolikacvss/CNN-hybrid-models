@@ -51,7 +51,7 @@ print(f"Training {args.model} on {device}")
 # ---------------------------
 # Data
 # ---------------------------
-train_loader, val_loader, _ = get_newplant_loaders(batch_size=args.batch_size)
+train_loader, val_loader, test_loader, class_names = get_newplant_loaders(batch_size=args.batch_size)
 
 # ---------------------------
 # Class weights
