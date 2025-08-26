@@ -11,7 +11,7 @@ from utils.metrics import compute_classification_metrics, compute_flops_params, 
 
 from models.leafnetV2 import LeafNetv2
 from models.efficientnetV2 import EfficientNetV2
-from models.mobilenet import MobileNet
+from models.mobilenetV2 import MobileNet
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
