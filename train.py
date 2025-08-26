@@ -13,7 +13,7 @@ from utils.metrics import compute_class_weights, compute_flops_params, measure_l
 # Models
 from models.leafnetV2 import LeafNetv2
 from models.efficientnetV2 import EfficientNetV2
-from models.mobilenet import MobileNet
+from models.mobilenetV2 import MobileNet
 
 # ---------------------------
 # Device
